@@ -1,16 +1,31 @@
+/*
+ * radspec - convert between radio frequency and wavelength
+ *
+ * Given a frequency, prints the corresponding wavelength (and vice versa),
+ * along with the ITU band designation.
+ *
+ * Usage: radspec <value><unit>
+ *        radspec <value> <unit>
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 
+/* Speed of light in m/s */
 #define C 299792458.0
 
 typedef struct {
-	const char *suffix;
-	int is_freq;
-	double multiplier;
+	const char *suffix;    /* unit string to match (lowercase) */
+	int is_freq;           /* 1 = frequency unit, 0 = wavelength unit */
+	double multiplier;     /* conversion factor to base unit (Hz or meters) */
 } unit_t;
 
+/*
+ * Supported input units. Longer strings must come before shorter ones
+ * to avoid ambiguous matches (e.g. "meters" before "m").
+ */
 static const unit_t units[] = {
 	{"terahertz",    1, 1e12},
 	{"thz",          1, 1e12},
@@ -39,14 +54,15 @@ static const unit_t units[] = {
 #define NUM_UNITS (sizeof(units) / sizeof(units[0]))
 
 typedef struct {
-	const char *name;
-	const char *abbrev;
-	int itu;
-	double lo_hz;
-	double hi_hz;
-	const char *range;
+	const char *name;      /* full band name */
+	const char *abbrev;    /* abbreviation (e.g. "VHF") */
+	int itu;               /* ITU band number */
+	double lo_hz;          /* lower frequency bound (inclusive) */
+	double hi_hz;          /* upper frequency bound (exclusive) */
+	const char *range;     /* display string for frequency range */
 } band_t;
 
+/* ITU radio band designations (ITU 1-12) */
 static const band_t bands[] = {
 	{"Extremely low frequency",      "ELF", 1,  3,     30,     "3\xe2\x80\x93" "30 Hz"},
 	{"Super low frequency",          "SLF", 2,  30,    300,    "30\xe2\x80\x93" "300 Hz"},
@@ -64,6 +80,7 @@ static const band_t bands[] = {
 
 #define NUM_BANDS (sizeof(bands) / sizeof(bands[0]))
 
+/* Convert a string to lowercase */
 static void str_lower(char *dst, const char *src, size_t n)
 {
 	size_t i;
@@ -72,6 +89,7 @@ static void str_lower(char *dst, const char *src, size_t n)
 	dst[i] = '\0';
 }
 
+/* Case-insensitive lookup of a unit string in the units table */
 static const unit_t *find_unit(const char *s)
 {
 	char lower[32];
@@ -84,6 +102,7 @@ static const unit_t *find_unit(const char *s)
 	return NULL;
 }
 
+/* Find the ITU band for a given frequency in Hz */
 static const band_t *find_band(double freq_hz)
 {
 	for (size_t i = 0; i < NUM_BANDS; i++) {
@@ -93,6 +112,7 @@ static const band_t *find_band(double freq_hz)
 	return NULL;
 }
 
+/* Print a frequency in the most appropriate unit */
 static void print_freq(double hz)
 {
 	if (hz >= 1e12)
@@ -107,6 +127,7 @@ static void print_freq(double hz)
 		printf("%.4f Hz\n", hz);
 }
 
+/* Print a wavelength in the most appropriate unit */
 static void print_wavelength(double m)
 {
 	if (m >= 1000.0)
@@ -119,6 +140,7 @@ static void print_wavelength(double m)
 		printf("%.4f mm\n", m * 1000.0);
 }
 
+/* Print the ITU band designation for a given frequency */
 static void print_band(double freq_hz)
 {
 	const band_t *b = find_band(freq_hz);
@@ -138,9 +160,11 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
+	/* Parse the numeric value; endptr will point to the start of the unit */
 	char *endptr;
 	double value = strtod(argv[1], &endptr);
 
+	/* Unit is either in argv[2] or appended to the number in argv[1] */
 	const char *unit_str;
 	if (argc == 3) {
 		unit_str = argv[2];
@@ -163,6 +187,7 @@ int main(int argc, char **argv)
 
 	double freq_hz, wavelength_m;
 
+	/* Convert using c = f * λ */
 	if (u->is_freq) {
 		freq_hz = value * u->multiplier;
 		wavelength_m = C / freq_hz;
