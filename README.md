@@ -2,6 +2,8 @@
 
 A command-line tool that converts between radio frequency and wavelength, and displays the corresponding ITU band designation.
 
+![Demo](demo.gif)
+
 ## Build
 
 ```
