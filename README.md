@@ -22,8 +22,8 @@ Input can be a frequency or a wavelength. The number and unit can be separated b
 
 | Type | Units |
 |------|-------|
-| Frequency | `hz`, `khz`, `mhz`, `ghz`, `thz` |
-| Wavelength | `mm`, `cm`, `m`, `meter`, `meters`, `km` |
+| Frequency | `hz`/`hertz`, `khz`/`kilohertz`, `mhz`/`megahertz`, `ghz`/`gigahertz`, `thz`/`terahertz` |
+| Wavelength | `mm`/`millimeter(s)`, `cm`/`centimeter(s)`, `m`/`meter(s)`, `km`/`kilometer(s)` |
 
 ### Examples
 
