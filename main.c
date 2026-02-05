@@ -162,6 +162,7 @@ int main(int argc, char **argv)
 		print_freq(freq_hz);
 	}
 
+	printf("\n");
 	print_band(freq_hz);
 
 	return 0;
